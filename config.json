@@ -1,0 +1,12 @@
+{
+  "database": {
+    "connectionLimit": 1024,
+    "host": "localhost",
+    "user": "root",
+    "password": "7777",
+    "database": "livechat"
+  },
+  "ssl": {
+
+  }
+}
