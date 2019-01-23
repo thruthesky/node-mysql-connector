@@ -9,19 +9,12 @@
  *
  * @see test code for details.
  */
-import { Config } from "./node-mysql-connector.interface";
-
-
-
-// const mysql = require('mysql2/promise');
 import * as mysql from 'mysql2/promise';
-
 
 export class NodeMySQLConnector {
     connection: mysql.Connection = null;
-    constructor(private config: Config) {
+    constructor(private config: mysql.ConnectionOptions) {
     }
-
 
     /**
      * This method connects to database.
@@ -56,7 +49,6 @@ export class NodeMySQLConnector {
         const res = await this.connection.query(q);
         return res[0];
     }
-
 
     /**
      * Will run insert query.
@@ -131,7 +123,6 @@ export class NodeMySQLConnector {
     rows(q: string): Promise<any> {
         return this.query(q);
     }
-
 
     /**
      * Will run 'rows' under the surface,

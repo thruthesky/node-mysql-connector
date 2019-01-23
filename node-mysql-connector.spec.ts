@@ -6,9 +6,8 @@ const expect = chai.expect;
 const config: Config = jsonfile.readFileSync('modules/node-mysql-connector/config.json');
 
 import { NodeMySQLConnector } from './node-mysql-connector';
-import { AccessDenied, ParseError, WrongField, WrongValue, TableNotExist, ConnectionCountError } from './node-mysql-connector.interface';
+import { ParseError, FieldError, FieldWrongValue, TableNotExist, ConnectionCountError } from './node-mysql-connector.interface';
 import { Connection } from 'mysql2/promise';
-import { PassThrough } from 'stream';
 
 
 
@@ -25,7 +24,6 @@ describe('[ Database Connection Test ]', () => {
         await db.connect();
         expect(db.connection).not.to.be.null;
         expect(db.connection).to.have.property('code');
-        // expect(db.connection.code).to.equal(AccessDenied);
     });
 
     it('Connection success test', async () => {
@@ -36,7 +34,6 @@ describe('[ Database Connection Test ]', () => {
         await db.connect();
         expect(db.connection).not.to.be.null;
         expect(db.connection).not.to.have.property('code');
-        // expect(db.connection.code).not.equal(AccessDenied);
         await db.disconnect();
     });
 
@@ -128,7 +125,7 @@ describe('[ Database Query Test ]', () => {
 
     it('Insert bad field test', async () => {
         const re = await db.insert('db_tests', { name: 'Test', address: 32323, status: 423423 }).catch(e => e);
-        expect(re).to.have.property('code', WrongField);
+        expect(re).to.have.property('code', FieldError);
     });
 
     it('Insert success test', async () => {
@@ -155,7 +152,7 @@ describe('[ Database Query Test ]', () => {
     it('Update change idx test', async () => {
         const res = await db.insert('db_tests', { name: 'Unchanged', address: 32323 });
         const re = await db.update('db_tests', { idx: 'sdadasd', name: 'Updated' }, `idx = ${res.insertId}`).catch(e => e);
-        expect(re).to.have.property('code', WrongValue);
+        expect(re).to.have.property('code', FieldWrongValue);
     });
 
     it('Update success test', async () => {
@@ -240,7 +237,7 @@ describe('[ Database Query Test ]', () => {
     it('Result success test', async () => {
         const res = await db.result(`SELECT * FROM db_tests LIMIT 20`).catch(e => e);
         expect(res).not.to.have.property('code', ParseError);
-        expect(res).not.to.have.property('code', WrongField);
+        expect(res).not.to.have.property('code', FieldError);
         expect(res).not.to.have.property('code', TableNotExist);
     });
 
@@ -281,7 +278,7 @@ describe('[ Database Query Test ]', () => {
 
         q = `DROP TABLE db_tests`;
         re = await db.query(q).catch(e => e);
-        expect(re).to.have.property('code', 'ER_BAD_TABLE_ERROR');
+        expect(re).to.have.property('code', );
 
     });
 });
