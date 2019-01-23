@@ -11,6 +11,8 @@
  */
 import { Config } from "./node-mysql-connector.interface";
 
+
+
 // const mysql = require('mysql2/promise');
 import * as mysql from 'mysql2/promise';
 
@@ -19,6 +21,7 @@ export class NodeMySQLConnector {
     connection: mysql.Connection = null;
     constructor(private config: Config) {
     }
+
 
     /**
      * This method connects to database.
@@ -32,12 +35,12 @@ export class NodeMySQLConnector {
      *    - `NodeMySQLConnection` will be returned on success.
      */
     async connect(): Promise<NodeMySQLConnector> {
-        this.connection = await mysql.createConnection({
+        this.connection = await (<any>mysql.createConnection({
             host: this.config.host,
             user: this.config.user,
             password: this.config.password,
             database: this.config.database
-        }).catch(e => e);
+        })).catch(e => e);
         return this;
     }
 
@@ -112,6 +115,18 @@ export class NodeMySQLConnector {
      * Will run select query and return result that matched the condition.
      *
      * @param q SQL statement.
+     * @returns
+     * An array of result set. Each element of the array is an object of the record(result).
+     *      Example)
+                [
+                    TextRow { idx: 1, name: 'Test', address: '32323', age: 0, gender: 0 },
+                    TextRow { idx: 2, name: '', address: '', age: 0, gender: 1 },
+                    TextRow { idx: 3, name: 'Unchanged', address: '32323', age: 0, gender: 0 },
+                    TextRow { idx: 4, name: 'Updated', address: '32323', age: 0, gender: 0 }
+                ]
+     * Or an empty array if no data exists.
+     * If an error happens, it will be delegated to parent.
+     *
      */
     rows(q: string): Promise<any> {
         return this.query(q);
@@ -125,9 +140,9 @@ export class NodeMySQLConnector {
      * @param q SQL statement.
      *
      * @returns
-     *    object of the record.
-     *    empty object if there is no result.
-     *    if error, an error is thrown.
+     *    Object of the first record.
+     *    Empty object if there is no result.
+     *    If error, an error is thrown.
      */
     async row(q: string): Promise<any> {
         return await this.rows(q)
@@ -145,16 +160,20 @@ export class NodeMySQLConnector {
      * will get the first field of the object.
      *
      * @param q SQL statement.
+     * @returns
+     *  a scalar on success.
+     *  null if the query has no result set. (If query made for non-existing record)
+     *  error will be delegated to parent.
      */
     async result(q: string): Promise<any> {
         return await this.row(q)
             .then(row => {
-                if (row) {
-                    const keys = Object.keys(row);
-                    if (keys && keys.length) {
-                        const firstKey = keys.shift();
-                        return row[firstKey];
-                    }
+                const keys = Object.keys(row);
+                if (keys.length) {
+                    const firstKey = keys.shift();
+                    return row[firstKey];
+                } else {
+                    return null;
                 }
             });
     }
