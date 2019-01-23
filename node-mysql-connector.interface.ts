@@ -11,6 +11,11 @@ export interface Config {
 // ===================
 
 /**
+ * Error code when connecting with wrong port.
+ */
+export const ConnectionRefused = 'ECONNREFUSED';
+
+/**
  * Error code when host denied access.
  * Cause:
  *  - Wrong password.
@@ -25,9 +30,14 @@ export const NoDefaultValue = 'ER_NO_DEFAULT_FOR_FIELD';
 /**
  * Error code when;
  *  - field doesn't exist in table.
+ */
+export const WrongField = 'ER_BAD_FIELD_ERROR';
+
+/**
+ * Error code when
  *  - value supplied is incompatible type.
  */
-export const FieldError = 'ER_BAD_FIELD_ERROR';
+export const WrongValue = 'ER_TRUNCATED_WRONG_VALUE_FOR_FIELD'
 
 /**
  * Error code when the table doesn't exist in database;

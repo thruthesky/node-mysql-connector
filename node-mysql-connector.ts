@@ -39,6 +39,10 @@ export class NodeMySQLConnector {
         return this;
     }
 
+    disconnect() {
+        return this.connection;
+    }
+
     /**
      * @param q SQL statement.
      * @return array<any>.
@@ -47,7 +51,7 @@ export class NodeMySQLConnector {
         const res = await this.connection.query(q);
         return res[0];
     }
-    
+
 
     /**
      * Will run insert query.
@@ -127,7 +131,7 @@ export class NodeMySQLConnector {
         return await this.rows(q)
             .then(rows => {
                 if (rows && rows.length) {
-                    return rows[0][0];
+                    return rows[0];
                 } else {
                     return {};
                 }
