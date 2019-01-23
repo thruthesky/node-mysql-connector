@@ -35,7 +35,7 @@ describe('[ Database Test ]', () => {
         expect(db.connection).not.to.be.null;
         expect(db.connection).not.to.have.property('code');
         expect(db.connection.code).not.equal(AccessDenied);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     // ======================
@@ -46,7 +46,7 @@ describe('[ Database Test ]', () => {
         const db = await new NodeMySQLConnector(config.database).connect();
         const re = await db.query('SELECT ...').catch(e => e);
         expect(re).to.have.property('code', ParseError);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     it('Query success test', async () => {
@@ -54,7 +54,7 @@ describe('[ Database Test ]', () => {
         const re = await db.query('SELECT ROUND(1/1) as re').catch(e => e);
         expect(re).not.to.have.property('code', ParseError);
         expect(re[0]['re']).to.equal('1');
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     it('Connection count error test', async () => {
@@ -63,15 +63,15 @@ describe('[ Database Test ]', () => {
             db[i] = await new NodeMySQLConnector(config.database).connect();
         };
         expect(db[152].connection).to.have.property('code', ConnectionCountError);
-        await db[151].connection.destroy();
-        await db[150].connection.destroy();
-        await db[149].connection.destroy();
+        await db[151].disconnect();
+        await db[150].disconnect();
+        await db[149].disconnect();
     });
 
     it('Connection count success test', async() => {
         const db = await new NodeMySQLConnector(config.database).connect();
         expect(db).to.not.have.property('code', ConnectionCountError);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     // ======================
@@ -88,7 +88,7 @@ describe('[ Database Test ]', () => {
           )`;
         const re = await db.query(q).catch(e => e);
         expect(re).to.not.have.property('code',ParseError);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
 
@@ -100,21 +100,21 @@ describe('[ Database Test ]', () => {
         const db = await new NodeMySQLConnector(config.database).connect();
         const re = await db.insert('db_not_exist', {name: 'Test', address: 32323, status: 423423}).catch(e => e);
         expect(re).to.have.property('code', TableNotExist);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     it('Insert bad field test', async () => {
         const db = await new NodeMySQLConnector(config.database).connect();
         const re = await db.insert('db_tests', {name: 'Test', address: 32323, status: 423423}).catch(e => e);
         expect(re).to.have.property('code', WrongField);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     it('Insert success test', async () => {
         const db = await new NodeMySQLConnector(config.database).connect();
         const re = await db.insert('db_tests', {name: 'Test', address: 32323}).catch(e => e);
         expect(re).to.have.property('affectedRows', 1);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     // ======================
@@ -126,7 +126,7 @@ describe('[ Database Test ]', () => {
         const res = await db.insert('db_tests', {name: 'Unchanged', address: 32323}).catch(e => e);
         const re = await db.update('db_tests',{ idx: 'sdadasd', name: 'Updated' }, `idx = ${res.insertId}`).catch(e => e);
         expect(re).to.have.property('code', WrongValue);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     it('Update success test', async () => {
@@ -135,7 +135,7 @@ describe('[ Database Test ]', () => {
         const re = await db.update('db_tests',{ name: 'Updated' }, `idx = ${res.insertId}`).catch(e => e);
         expect(res).to.have.property('affectedRows', 1);
         expect(re).to.have.property('affectedRows', 1);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     // ======================
@@ -146,7 +146,7 @@ describe('[ Database Test ]', () => {
         const db = await new NodeMySQLConnector(config.database).connect();
         const re = await db.delete('db_tests', 'idx = 10000000000000000000000000').catch(e => e);
         expect(re).to.have.property('affectedRows',0);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     it('Delete success test', async() => {
@@ -155,7 +155,7 @@ describe('[ Database Test ]', () => {
         const re = await db.delete('db_tests', `idx = ${res.insertId}`).catch(e => e);
         expect(res).to.have.property('affectedRows', 1);
         expect(re).to.have.property('affectedRows', 1);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     // ======================
@@ -166,7 +166,7 @@ describe('[ Database Test ]', () => {
         const db = await new NodeMySQLConnector(config.database).connect();
         const res = await db.rows(`SELECT * FROM nothing_table`).catch(e => e);
         expect(res).to.have.property('code', TableNotExist);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     it('Rows success test', async() => {
@@ -174,7 +174,7 @@ describe('[ Database Test ]', () => {
         const res = await db.rows(`SELECT * FROM db_tests LIMIT 20`).catch(e => e);
         expect(res).to.be.an('array');
         expect(res).to.have.property('length');
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     // ======================
@@ -185,7 +185,7 @@ describe('[ Database Test ]', () => {
         const db = await new NodeMySQLConnector(config.database).connect();
         const res = await db.row(`SELECT * FROM nothing_table`).catch(e => e);
         expect(res).to.have.property('code', TableNotExist);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     it('Row success test', async() => {
@@ -195,7 +195,7 @@ describe('[ Database Test ]', () => {
         expect(res).not.to.have.property('code', WrongField);
         expect(res).not.to.have.property('code', TableNotExist);
         expect(res).to.be.an('object');
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     // ======================
@@ -206,7 +206,7 @@ describe('[ Database Test ]', () => {
         const db = await new NodeMySQLConnector(config.database).connect();
         const res = await db.result(`SELECT * FROM nothing_table`).catch(e => e);
         expect(res).to.have.property('code', TableNotExist);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     it('Result success test', async() => {
@@ -215,7 +215,7 @@ describe('[ Database Test ]', () => {
         expect(res).not.to.have.property('code', ParseError);
         expect(res).not.to.have.property('code', WrongField);
         expect(res).not.to.have.property('code', TableNotExist);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     // ======================
@@ -226,7 +226,7 @@ describe('[ Database Test ]', () => {
         const db = await new NodeMySQLConnector(config.database).connect();
         const res = await db.count(`nothing_table`, `idx = 1`).catch(e => e);
         expect(res).to.have.property('code', TableNotExist);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     it('Result success test', async() => {
@@ -235,7 +235,7 @@ describe('[ Database Test ]', () => {
         expect(res).not.to.have.property('code', ParseError);
         expect(res).not.to.have.property('code', WrongField);
         expect(res).not.to.have.property('code', TableNotExist);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 
     // ======================
@@ -247,6 +247,6 @@ describe('[ Database Test ]', () => {
         const q = `DROP TABLE db_tests`;
         const re = await db.query(q).catch(e => e);
         expect(re).to.not.have.property('code',ParseError);
-        await db.connection.destroy();
+        await db.disconnect();
     });
 });

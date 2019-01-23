@@ -39,7 +39,7 @@ export class NodeMySQLConnector {
         return this;
     }
 
-    async disconnect() {
+    disconnect() {
         return this.connection.destroy();
     }
 
