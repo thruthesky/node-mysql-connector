@@ -40,10 +40,8 @@ export class NodeMySQLConnector {
     }
 
     /**
-     * @note this function connects to database and release the connection after work is done.
-     * * pool.getConnection -> connection.query -> connection.release.
-     *
      * @param q SQL statement.
+     * @return array<any>.
      */
     query(q: string): Promise<any> {
         return this.connection.query(q);
@@ -136,7 +134,6 @@ export class NodeMySQLConnector {
                 }
             });
     }
-
 
     /**
      * Will run 'row' under the surface,
