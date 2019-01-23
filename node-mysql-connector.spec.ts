@@ -62,6 +62,10 @@ describe('[ Database Test ]', () => {
      *      And connect 1 if it's okay. then, okay.
      */
 
+     /**
+      * Table creation & drop
+      */
+
     // ======================
     //       Input Query
     // ======================
