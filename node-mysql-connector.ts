@@ -11,10 +11,12 @@
  */
 import { Config } from "./node-mysql-connector.interface";
 
-const mysql = require('mysql2/promise');
+// const mysql = require('mysql2/promise');
+import * as mysql from 'mysql2/promise';
+
 
 export class NodeMySQLConnector {
-    connection = null;
+    connection: mysql.Connection = null;
     constructor(private config: Config) {
     }
 

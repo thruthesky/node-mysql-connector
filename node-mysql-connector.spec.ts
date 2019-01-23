@@ -34,7 +34,7 @@ describe('[ Database Test ]', () => {
         await db.connect();
         expect(db.connection).not.to.be.null;
         expect(db.connection).not.to.have.property('code');
-        expect(db.connection.code).not.equal(AccessDenied);
+        // expect(db.connection.code).not.equal(AccessDenied);
         await db.disconnect();
     });
 
