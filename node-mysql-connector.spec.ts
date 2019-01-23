@@ -44,144 +44,154 @@ describe('[ Database Test ]', () => {
     it('Query error test', async () => {
         const db = await new NodeMySQLConnector(config.database).connect();
         const re = await db.query('SELECT ...').catch(e => e);
-        expect(re).to.have.property('code',ParseError);
+        expect(re).to.have.property('code', ParseError);
     });
 
     it('Query success test', async () => {
         const db = await new NodeMySQLConnector(config.database).connect();
-        const re = await db.query('SELECT 1/1').catch(e => e);
-        expect(re).not.to.have.property('code',ParseError);
+        const re = await db.query('SELECT ROUND(1/1) as re').catch(e => e);
+        expect(re).not.to.have.property('code', ParseError);
+        console.log(re);
+        expect(re[0]['re']).to.equal('1');
     });
+
+    /**
+     * TEST E_CON_COUNT_ERROR
+     * @logic Make connections until you get E_CON_COUNT_ERROR
+     *      And disconnect 1
+     *      And connect 1 if it's okay. then, okay.
+     */
 
     // ======================
     //       Input Query
     // ======================
 
-    it('Insert table not exists test', async () => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const re = await db.insert('sp_not_exist', {name: 'Test', address: 32323, status: 423423}).catch(e => e);
-        expect(re).to.have.property('code', TableNotExist);
-    });
+    // it('Insert table not exists test', async () => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const re = await db.insert('sp_not_exist', {name: 'Test', address: 32323, status: 423423}).catch(e => e);
+    //     expect(re).to.have.property('code', TableNotExist);
+    //     db.disconnect();
+    // });
 
-    it('Insert bad field test', async () => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const re = await db.insert('sp_tests', {name: 'Test', address: 32323, status: 423423}).catch(e => e);
-        expect(re).to.have.property('code', FieldError);
-    });
+    // it('Insert bad field test', async () => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const re = await db.insert('sp_tests', {name: 'Test', address: 32323, status: 423423}).catch(e => e);
+    //     expect(re).to.have.property('code', FieldError);
+    // });
 
-    it('Insert success test', async () => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const re = await db.insert('sp_tests', {name: 'Test', address: 32323}).catch(e => e);
-        expect(re[0]).to.have.property('affectedRows', 1);
-    });
+    // it('Insert success test', async () => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const re = await db.insert('sp_tests', {name: 'Test', address: 32323}).catch(e => e);
+    //     expect(re[0]).to.have.property('affectedRows', 1);
+    // });
 
-    // ======================
-    //      Update Query
-    // ======================
+    // // ======================
+    // //      Update Query
+    // // ======================
 
-    it('Update change idx test', async () => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const res = await db.insert('sp_tests', {name: 'Unchanged', address: 32323}).catch(e => e);
-        const re = await db.update('sp_tests',{ idx: 999, name: 'Updated' }, `idx = ${res.insertId}`).catch(e => e);
-        expect(re).to.have.property('code', FieldError);
-    });
+    // it('Update change idx test', async () => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const res = await db.insert('sp_tests', {name: 'Unchanged', address: 32323}).catch(e => e);
+    //     const re = await db.update('sp_tests',{ idx: 999, name: 'Updated' }, `idx = ${res.insertId}`).catch(e => e);
+    //     expect(re).to.have.property('code', FieldError);
+    // });
 
-    it('Update success test', async () => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const res = await db.insert('sp_tests', {name: 'Unchanged', address: 32323}).catch(e => e);
-        const re = await db.update('sp_tests',{ name: 'Updated' }, `idx = ${res[0].insertId}`).catch(e => e);
-        expect(res[0]).to.have.property('affectedRows', 1);
-        expect(re[0]).to.have.property('affectedRows', 1);
-    });
+    // it('Update success test', async () => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const res = await db.insert('sp_tests', {name: 'Unchanged', address: 32323}).catch(e => e);
+    //     const re = await db.update('sp_tests',{ name: 'Updated' }, `idx = ${res[0].insertId}`).catch(e => e);
+    //     expect(res[0]).to.have.property('affectedRows', 1);
+    //     expect(re[0]).to.have.property('affectedRows', 1);
+    // });
 
-    // ======================
-    //      Delete Query
-    // ======================
+    // // ======================
+    // //      Delete Query
+    // // ======================
 
-    it('Delete non existent data test', async() => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const re = await db.delete('sp_tests', 'idx = 10000000000000000000000000').catch(e => e);
-        expect(re[0]).to.have.property('affectedRows',0);
-    });
+    // it('Delete non existent data test', async() => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const re = await db.delete('sp_tests', 'idx = 10000000000000000000000000').catch(e => e);
+    //     expect(re[0]).to.have.property('affectedRows',0);
+    // });
 
-    it('Delete success test', async() => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const res = await db.insert('sp_tests', { name: 'To be deleted'}).catch(e => e);
-        const re = await db.delete('sp_tests', `idx = ${res[0].insertId}`).catch(e => e);
-        expect(res[0]).to.have.property('affectedRows', 1);
-        expect(re[0]).to.have.property('affectedRows', 1);
-    });
+    // it('Delete success test', async() => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const res = await db.insert('sp_tests', { name: 'To be deleted'}).catch(e => e);
+    //     const re = await db.delete('sp_tests', `idx = ${res[0].insertId}`).catch(e => e);
+    //     expect(res[0]).to.have.property('affectedRows', 1);
+    //     expect(re[0]).to.have.property('affectedRows', 1);
+    // });
 
-    // ======================
-    //      Rows Query
-    // ======================
+    // // ======================
+    // //      Rows Query
+    // // ======================
 
-    it('Rows non existent data test', async () => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const res = await db.rows(`SELECT * FROM nothing_table`).catch(e => e);
-        expect(res).to.have.property('code', TableNotExist);
-    });
+    // it('Rows non existent data test', async () => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const res = await db.rows(`SELECT * FROM nothing_table`).catch(e => e);
+    //     expect(res).to.have.property('code', TableNotExist);
+    // });
 
-    it('Rows success test', async() => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const res = await db.rows(`SELECT * FROM sp_tests LIMIT 20`).catch(e => e);
-        expect(res[0]).to.be.an('array');
-        expect(res[0].length).is.equal(20);
-    });
+    // it('Rows success test', async() => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const res = await db.rows(`SELECT * FROM sp_tests LIMIT 20`).catch(e => e);
+    //     expect(res[0]).to.be.an('array');
+    //     expect(res[0].length).is.equal(20);
+    // });
 
-    // ======================
-    //      Rows Query
-    // ======================
+    // // ======================
+    // //      Rows Query
+    // // ======================
 
-    it('Row non existent data test', async() => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const res = await db.row(`SELECT * FROM nothing_table`).catch(e => e);
-        expect(res).to.have.property('code', TableNotExist);
-    });
+    // it('Row non existent data test', async() => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const res = await db.row(`SELECT * FROM nothing_table`).catch(e => e);
+    //     expect(res).to.have.property('code', TableNotExist);
+    // });
 
-    it('Row success test', async() => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const res = await db.row(`SELECT * FROM sp_tests LIMIT 20`).catch(e => e);
-        expect(res).not.to.have.property('code', ParseError);
-        expect(res).not.to.have.property('code', FieldError);
-        expect(res).not.to.have.property('code', TableNotExist);
-        expect(res).to.be.an('object');
-    });
+    // it('Row success test', async() => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const res = await db.row(`SELECT * FROM sp_tests LIMIT 20`).catch(e => e);
+    //     expect(res).not.to.have.property('code', ParseError);
+    //     expect(res).not.to.have.property('code', FieldError);
+    //     expect(res).not.to.have.property('code', TableNotExist);
+    //     expect(res).to.be.an('object');
+    // });
 
-    // ======================
-    //      Result Query
-    // ======================
+    // // ======================
+    // //      Result Query
+    // // ======================
 
-    it('Result non existent data test', async() => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const res = await db.result(`SELECT * FROM nothing_table`).catch(e => e);
-        expect(res).to.have.property('code', TableNotExist);
-    });
+    // it('Result non existent data test', async() => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const res = await db.result(`SELECT * FROM nothing_table`).catch(e => e);
+    //     expect(res).to.have.property('code', TableNotExist);
+    // });
 
-    it('Result success test', async() => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const res = await db.result(`SELECT * FROM sp_tests LIMIT 20`).catch(e => e);
-        expect(res).not.to.have.property('code', ParseError);
-        expect(res).not.to.have.property('code', FieldError);
-        expect(res).not.to.have.property('code', TableNotExist);
-    });
+    // it('Result success test', async() => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const res = await db.result(`SELECT * FROM sp_tests LIMIT 20`).catch(e => e);
+    //     expect(res).not.to.have.property('code', ParseError);
+    //     expect(res).not.to.have.property('code', FieldError);
+    //     expect(res).not.to.have.property('code', TableNotExist);
+    // });
 
-    // ======================
-    //      Result Query
-    // ======================
+    // // ======================
+    // //      Result Query
+    // // ======================
 
-    it('Result non existent data test', async() => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const res = await db.count(`nothing_table`, `idx = 1`).catch(e => e);
-        expect(res).to.have.property('code', TableNotExist);
-    });
+    // it('Result non existent data test', async() => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const res = await db.count(`nothing_table`, `idx = 1`).catch(e => e);
+    //     expect(res).to.have.property('code', TableNotExist);
+    // });
 
-    it('Result success test', async() => {
-        const db = await new NodeMySQLConnector(config.database).connect();
-        const res = await db.count(`sp_tests`, `idx = 1`).catch(e => e);
-        expect(res).not.to.have.property('code', ParseError);
-        expect(res).not.to.have.property('code', FieldError);
-        expect(res).not.to.have.property('code', TableNotExist);
-    });
+    // it('Result success test', async() => {
+    //     const db = await new NodeMySQLConnector(config.database).connect();
+    //     const res = await db.count(`sp_tests`, `idx = 1`).catch(e => e);
+    //     expect(res).not.to.have.property('code', ParseError);
+    //     expect(res).not.to.have.property('code', FieldError);
+    //     expect(res).not.to.have.property('code', TableNotExist);
+    // });
 
 });

@@ -43,9 +43,11 @@ export class NodeMySQLConnector {
      * @param q SQL statement.
      * @return array<any>.
      */
-    query(q: string): Promise<any> {
-        return this.connection.query(q);
+    async query(q: string): Promise<any> {
+        const res = await this.connection.query(q);
+        return res[0];
     }
+    
 
     /**
      * Will run insert query.
@@ -54,8 +56,6 @@ export class NodeMySQLConnector {
      * @param fields table's fields.
      */
     insert(table: string, fields: any = {}): Promise<any> {
-        fields.stamp_created = Math.floor((new Date().getTime()) / 1000);
-        fields.stamp_updated = Math.floor((new Date().getTime()) / 1000);
         const arr = [];
         for (const field of Object.keys(fields)) {
             let v: any;
@@ -78,7 +78,6 @@ export class NodeMySQLConnector {
      * @param conds where clause.
      */
     update(table: string, fields: any = {}, conds: string): Promise<any> {
-        fields.stamp_updated = Math.floor((new Date().getTime()) / 1000);
         const arr = [];
         for (const field of Object.keys(fields)) {
             let v: any;
