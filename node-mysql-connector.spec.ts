@@ -6,9 +6,7 @@ const expect = chai.expect;
 const config: Config = jsonfile.readFileSync('modules/node-mysql-connector/config.json');
 
 import { NodeMySQLConnector } from './node-mysql-connector';
-import { ParseError, FieldError, FieldWrongValue, TableNotExist, ConnectionCountError } from './node-mysql-connector.interface';
-import { Connection } from 'mysql2/promise';
-
+import { ParseError, FieldError, FieldWrongValue, TableNotExist, ConnectionCountError, NullError, TableError } from './node-mysql-connector.interface';
 
 
 describe('[ Database Connection Test ]', () => {
@@ -94,7 +92,7 @@ describe('[ Database Query Test ]', () => {
         db = await new NodeMySQLConnector(config.database).connect();
     });
     afterEach(async () => {
-        await db.disconnect();
+       await db.disconnect();
     })
     // ======================
     //     Create Table
@@ -128,6 +126,11 @@ describe('[ Database Query Test ]', () => {
         expect(re).to.have.property('code', FieldError);
     });
 
+    it('Insert null field test', async () => {
+        const re = await db.insert('db_tests', { name: null, address: 32323 }).catch(e => e);
+        expect(re).to.have.property('code', NullError);
+    });
+
     it('Insert success test', async () => {
         const re = await db.insert('db_tests', { name: 'Test', address: 32323 }).catch(e => e);
         expect(re).to.have.property('affectedRows', 1);
@@ -140,7 +143,7 @@ describe('[ Database Query Test ]', () => {
      */
     it('Insert boolean test', async () => {
         let res = await db.insert('db_tests', { gender: true });
-        res = await db.result(`SELECT gender FROM db_tests WHERE idx=${res.insertId}`);
+        res = await <any>db.result(`SELECT gender FROM db_tests WHERE idx=${res.insertId}`);
         expect(res).to.equal(1);
     });
 
@@ -153,6 +156,12 @@ describe('[ Database Query Test ]', () => {
         const res = await db.insert('db_tests', { name: 'Unchanged', address: 32323 });
         const re = await db.update('db_tests', { idx: 'sdadasd', name: 'Updated' }, `idx = ${res.insertId}`).catch(e => e);
         expect(re).to.have.property('code', FieldWrongValue);
+    });
+
+    it('Update null test', async () => {
+        const res = await db.insert('db_tests', { name: 'Unchanged', address: 32323 });
+        const re = await db.update('db_tests', { name: null }, `idx = ${res.insertId}`).catch(e => e);
+        expect(re).to.have.property('code', NullError);
     });
 
     it('Update success test', async () => {
@@ -176,6 +185,11 @@ describe('[ Database Query Test ]', () => {
         expect(re).to.have.property('affectedRows', 0);
     });
 
+    it('Delete null test', async () => {
+        const re = await db.delete('db_tests', `idx = ${null}`).catch(e => e);
+        expect(re).to.have.property('affectedRows', 0);
+    });
+
     it('Delete success test', async () => {
         const res = await db.insert('db_tests', { name: 'To be deleted', address: 'sdasda' });
         const re = await db.delete('db_tests', `idx = ${res.insertId}`);
@@ -192,12 +206,16 @@ describe('[ Database Query Test ]', () => {
         expect(res).to.have.property('code', TableNotExist);
     });
 
+    it('Rows null table test', async () => {
+        const res = await db.rows(`SELECT * FROM ${null}`).catch(e => e);
+        expect(res).to.have.property('code', ParseError);
+    });
+
     it('Rows success test', async () => {
         const res = await db.rows(`SELECT * FROM db_tests LIMIT 20`);
         expect(res).to.be.an('array');
         expect(res).to.have.property('length');
     });
-
 
     it('rows() with non-existing records.', async () => {
         const res = await db.rows(`SELECT * FROM db_tests WHERE idx=0`);
@@ -216,12 +234,13 @@ describe('[ Database Query Test ]', () => {
     });
 
     it('Row success test', async () => {
-        const res = await db.row(`SELECT * FROM db_tests LIMIT 20`).catch(e => e);
-        expect(res).not.to.have.property('code', TableNotExist);
+        const res = await db.row(`SELECT * FROM db_tests LIMIT 20`);
+        expect(res).not.to.have.property('code');
         expect(res).to.be.an('object');
     });
+
     it('row() on non existing record', async () => {
-        const res = await db.row(`SELECT * FROM db_tests WHERE idx=0`).catch(e => e);
+        const res = await db.row(`SELECT * FROM db_tests WHERE idx=0`);
         expect(res).to.be.an('object');
     });
 
@@ -235,13 +254,9 @@ describe('[ Database Query Test ]', () => {
     });
 
     it('Result success test', async () => {
-        const res = await db.result(`SELECT * FROM db_tests LIMIT 20`).catch(e => e);
-        expect(res).not.to.have.property('code', ParseError);
-        expect(res).not.to.have.property('code', FieldError);
-        expect(res).not.to.have.property('code', TableNotExist);
+        const res = await db.result(`SELECT * FROM db_tests LIMIT 20`);
+        expect(res).not.to.have.property('code');
     });
-
-
 
     it('result() on non-existing record', async () => {
         const res = await db.result(`SELECT * FROM db_tests where idx=0`);
@@ -278,7 +293,7 @@ describe('[ Database Query Test ]', () => {
 
         q = `DROP TABLE db_tests`;
         re = await db.query(q).catch(e => e);
-        expect(re).to.have.property('code', );
+        expect(re).to.have.property('code', TableError);
 
     });
 });

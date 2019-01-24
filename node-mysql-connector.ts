@@ -12,20 +12,23 @@
 import * as mysql from 'mysql2/promise';
 
 export class NodeMySQLConnector {
-    connection: mysql.Connection = null;
+
     constructor(private config: mysql.ConnectionOptions) {
     }
 
     /**
-     * This method connects to database.
+     * This property hold mysql.Connection.
      *
-     * @note this should be use for testing connection only.
-     *  - if connected release connection and use query function.
-     *  - else display error.
+     * @note can be use to gain extra methods.
+     */
+    connection: mysql.Connection = null;
+
+    /**
+     * This method create connection and connects to database.
      *
-     * @return A promise of
-     *    - false if failed on connection. In this case, this.connection.code has the error code.
-     *    - `NodeMySQLConnection` will be returned on success.
+     * @returns A promise of
+     *      - Error code will be thrown on failure.
+     *      - `NodeMySQLConnection` will be returned on success.
      */
     async connect(): Promise<NodeMySQLConnector> {
         this.connection = await (<any>mysql.createConnection({
@@ -37,13 +40,25 @@ export class NodeMySQLConnector {
         return this;
     }
 
-    disconnect() {
-        return this.connection.destroy();
+    /**
+     * This methods disconnects to database.
+     *
+     * @returns A promise of;
+     *      - Void will be returned on success.
+     *      - Error code will be thrown on failure.
+     */
+    async disconnect() {
+        return this.connection.end();
     }
 
     /**
+     * This method run SQL statement.
+     *
      * @param q SQL statement.
-     * @return array<any>.
+     *
+     * @return A promise of
+     *      - Error code will be thrown on failure.
+     *      - Result will be return on success.
      */
     async query(q: string): Promise<any> {
         const res = await this.connection.query(q);
@@ -51,12 +66,16 @@ export class NodeMySQLConnector {
     }
 
     /**
-     * Will run insert query.
+     * This method create record on database.
      *
      * @param table database table.
      * @param fields table's fields.
+     *
+     * @returns A promise of
+     *      - Error code will be thrown on failure.
+     *      - OkPacket will be returned on success.
      */
-    insert(table: string, fields: any = {}): Promise<any> {
+    insert(table: string, fields: any = {}): Promise<mysql.OkPacket> {
         const arr = [];
         for (const field of Object.keys(fields)) {
             let v: any;
@@ -72,13 +91,17 @@ export class NodeMySQLConnector {
     }
 
     /**
-     * Will run update query.
+     * This method update record on database.
      *
      * @param table database table.
      * @param fields table's fiels.
      * @param conds where clause.
+     *
+     * @returns A promise of
+     *      - Error code will be thrown on failure.
+     *      - OkPackect will be returned on success.
      */
-    update(table: string, fields: any = {}, conds: string): Promise<any> {
+    update(table: string, fields: any = {}, conds: string): Promise<mysql.OkPacket> {
         const arr = [];
         for (const field of Object.keys(fields)) {
             let v: any;
@@ -94,28 +117,33 @@ export class NodeMySQLConnector {
     }
 
     /**
-     * Will run delete query.
+     * This method will remove record on database.
      *
      * @param table database table.
      * @param conds where clause.
+     *
+     * @returns A promise of
+     *      - Error code will be thrown on failure.
+     *      - OkPacket will be returned on success.
      */
-    delete(table: string, conds: string): Promise<any> {
+    delete(table: string, conds: string): Promise<mysql.OkPacket> {
         return this.query(`DELETE FROM ${table} WHERE ${conds}`);
     }
 
     /**
-     * Will run select query and return result that matched the condition.
+     * This method will fetch array of record set.
      *
      * @param q SQL statement.
-     * @returns
-     * An array of result set. Each element of the array is an object of the record(result).
-     *      Example)
-                [
-                    TextRow { idx: 1, name: 'Test', address: '32323', age: 0, gender: 0 },
-                    TextRow { idx: 2, name: '', address: '', age: 0, gender: 1 },
-                    TextRow { idx: 3, name: 'Unchanged', address: '32323', age: 0, gender: 0 },
-                    TextRow { idx: 4, name: 'Updated', address: '32323', age: 0, gender: 0 }
-                ]
+     *
+     * @returns An array of result set. Each element of the array is an object of the record(result).
+     *
+     * @example
+     * [
+     *      TextRow { idx: 1, name: 'Test', address: '32323', age: 0, gender: 0 },
+     *      TextRow { idx: 2, name: '', address: '', age: 0, gender: 1 },
+     *      TextRow { idx: 3, name: 'Unchanged', address: '32323', age: 0, gender: 0 },
+     *      TextRow { idx: 4, name: 'Updated', address: '32323', age: 0, gender: 0 }
+     * ]
      * Or an empty array if no data exists.
      * If an error happens, it will be delegated to parent.
      *
@@ -125,15 +153,14 @@ export class NodeMySQLConnector {
     }
 
     /**
-     * Will run 'rows' under the surface,
-     * will get the first index of the array.
+     * This method will fetch result as objecct form.
      *
      * @param q SQL statement.
      *
-     * @returns
-     *    Object of the first record.
-     *    Empty object if there is no result.
-     *    If error, an error is thrown.
+     * @returns A promise of
+     *      - Object of the first record.
+     *      - Empty object if there is no result.
+     *      - Error code on failure.
      */
     async row(q: string): Promise<any> {
         return await this.rows(q)
@@ -147,16 +174,16 @@ export class NodeMySQLConnector {
     }
 
     /**
-     * Will run 'row' under the surface,
-     * will get the first field of the object.
+     * This method return the value of the first field.
      *
      * @param q SQL statement.
-     * @returns
-     *  a scalar on success.
-     *  null if the query has no result set. (If query made for non-existing record)
-     *  error will be delegated to parent.
+     *
+     * @returns A promise of
+     *      - a scalar on success.
+     *      - null if the query has no result set. (If query made for non-existing record)
+     *      - error will be delegated to parent.
      */
-    async result(q: string): Promise<any> {
+    async result(q: string): Promise<number> {
         return await this.row(q)
             .then(row => {
                 const keys = Object.keys(row);
@@ -170,10 +197,16 @@ export class NodeMySQLConnector {
     }
 
     /**
-   * Will run count query.
-   *
-   * @param q SQL statement.
-   */
+     * This method will return no of record.
+     *
+     * @param table database table.
+     * @param conds where clause.
+     *
+     * @returns A promise of
+     *      - A number of record on success.
+     *      - 0 if no match record.
+     *      - Error code on failure.
+     */
     count(table: string, conds: string): Promise<any> {
         return this.result(`SELECT COUNT(*) FROM ${table} WHERE ${conds}`);
     }
