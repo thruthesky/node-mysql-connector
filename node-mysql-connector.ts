@@ -47,7 +47,7 @@ export class NodeMySQLConnector {
      *      - Void will be returned on success.
      *      - Error code will be thrown on failure.
      */
-    async disconnect() {
+    async disconnect(): Promise<void> {
         return this.connection.end();
     }
 

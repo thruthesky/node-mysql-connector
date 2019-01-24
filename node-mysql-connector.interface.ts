@@ -85,3 +85,11 @@ export const TableError = 'ER_BAD_TABLE_ERROR';
  * * When SQL statement has inccorect syntax.
  */
 export const ParseError = 'ER_PARSE_ERROR';
+
+/**
+ * Error code regarding SQL statement.
+ *
+ * @occur
+ * * When supplying NaN value on LIMIT clause.
+ */
+export const SpUndeclaredVar = 'ER_SP_UNDECLARED_VAR';
