@@ -88,12 +88,21 @@ describe('[ Database Connection Test ]', () => {
 
 let db: NodeMySQLConnector = null;
 describe('[ Database Query Test ]', () => {
+
+    /**
+     * Disconneect after each test.
+     */
     beforeEach(async () => {
         db = await new NodeMySQLConnector(config.database).connect();
     });
+
+    /**
+     * Disconneect after each test.
+     */
     afterEach(async () => {
-       await db.disconnect();
-    })
+        await db.disconnect();
+    });
+
     // ======================
     //     Create Table
     // ======================
@@ -110,7 +119,6 @@ describe('[ Database Query Test ]', () => {
         const re = await db.query(q).catch(e => e);
         expect(re).to.not.have.property('code', ParseError);
     });
-
 
     // ======================
     //       Input Query
@@ -146,7 +154,6 @@ describe('[ Database Query Test ]', () => {
         res = await <any>db.result(`SELECT gender FROM db_tests WHERE idx=${res.insertId}`);
         expect(res).to.equal(1);
     });
-
 
     // ======================
     //      Update Query
@@ -263,7 +270,6 @@ describe('[ Database Query Test ]', () => {
         expect(res).to.be.null;
     });
 
-
     // ======================
     //      Count Query
     // ======================
@@ -294,6 +300,5 @@ describe('[ Database Query Test ]', () => {
         q = `DROP TABLE db_tests`;
         re = await db.query(q).catch(e => e);
         expect(re).to.have.property('code', TableError);
-
     });
 });

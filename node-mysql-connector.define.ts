@@ -93,3 +93,11 @@ export const ParseError = 'ER_PARSE_ERROR';
  * * When supplying NaN value on LIMIT clause.
  */
 export const SpUndeclaredVar = 'ER_SP_UNDECLARED_VAR';
+
+/**
+ * Custom error code regarding connection.
+ * 
+ * @occur
+ * * When trying to use node connector before establishing database connection.
+ */
+export const NoDBConnection = {code: 'NO_DB_CONNECTION_CREATED', message: 'No established database connection'};

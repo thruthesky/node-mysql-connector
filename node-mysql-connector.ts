@@ -11,6 +11,7 @@
  */
 import * as mysql from 'mysql2/promise';
 import { ConnectionOptions } from 'mysql2/promise';
+import { NoDBConnection } from './node-mysql-connector.define';
 export { ConnectionOptions };
 
 
@@ -41,7 +42,9 @@ export class NodeMySQLConnector {
             database: this.config.database
         })).then((conn: any) => {
             return conn;
-        }).catch((e: any) => e);
+        }).catch((e: any) => {
+            return e;
+        });
         return this;
     }
 
@@ -53,6 +56,7 @@ export class NodeMySQLConnector {
      *      - Error code will be thrown on failure.
      */
     async disconnect(): Promise<void> {
+        if (!this.connection) return Promise.reject(NoDBConnection);
         return await this.connection.end();
     }
 
@@ -69,6 +73,7 @@ export class NodeMySQLConnector {
      *         due to database is not connected.
      */
     async query(q: string): Promise<any> {
+        if (!this.connection) return Promise.reject(NoDBConnection);
         const res = await this.connection.query(q);
         return res[0];
     }
@@ -86,6 +91,7 @@ export class NodeMySQLConnector {
      * @proven 'escape is not a function' when database is not connected.
      */
     async insert(table: string, fields: any = {}): Promise<mysql.OkPacket> {
+        if (!this.connection) return Promise.reject(NoDBConnection);
         const arr = [];
         for (const field of Object.keys(fields)) {
             let v: any;
@@ -114,6 +120,7 @@ export class NodeMySQLConnector {
      * @proven 'escape is not a function' when database is not connected.
      */
     async update(table: string, fields: any = {}, conds: string): Promise<mysql.OkPacket> {
+        if (!this.connection) return Promise.reject(NoDBConnection);
         const arr = [];
         for (const field of Object.keys(fields)) {
             let v: any;
