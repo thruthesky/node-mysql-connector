@@ -10,10 +10,13 @@
  * @see test code for details.
  */
 import * as mysql from 'mysql2/promise';
+import { ConnectionOptions } from 'mysql2/promise';
+export { ConnectionOptions };
+
 
 export class NodeMySQLConnector {
 
-    constructor(private config: mysql.ConnectionOptions) {
+    constructor(private config: ConnectionOptions) {
     }
 
     /**
@@ -36,7 +39,9 @@ export class NodeMySQLConnector {
             user: this.config.user,
             password: this.config.password,
             database: this.config.database
-        })).catch(e => e);
+        })).then(() => {
+            console.log('Database connected...!');
+        }).catch(e => e);
         return this;
     }
 
@@ -65,6 +70,7 @@ export class NodeMySQLConnector {
         return res[0];
     }
 
+
     /**
      * This method create record on database.
      *
@@ -75,7 +81,8 @@ export class NodeMySQLConnector {
      *      - Error code will be thrown on failure.
      *      - OkPacket will be returned on success.
      */
-    insert(table: string, fields: any = {}): Promise<mysql.OkPacket> {
+    async insert(table: string, fields: any = {}): Promise<mysql.OkPacket> {
+        console.log(' => node-mysql-connector::insert: ', table, fields);
         const arr = [];
         for (const field of Object.keys(fields)) {
             let v: any;
@@ -87,7 +94,8 @@ export class NodeMySQLConnector {
             arr.push('`' + field + '`=' + v);
         }
         const q = `INSERT INTO ${table} SET ` + arr.join(',');
-        return this.query(q);
+        console.log(` => q: ${q}`);
+        return await this.query(q);
     }
 
     /**
