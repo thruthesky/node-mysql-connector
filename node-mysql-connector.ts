@@ -39,9 +39,10 @@ export class NodeMySQLConnector {
             user: this.config.user,
             password: this.config.password,
             database: this.config.database
-        })).then(() => {
-            console.log('Database connected...!');
-        }).catch(e => e);
+        })).then((conn: any) => {
+            // console.log('Database connected...!');
+            return conn;
+        }).catch((e: any) => e);
         return this;
     }
 
@@ -66,6 +67,8 @@ export class NodeMySQLConnector {
      *      - Result will be return on success.
      */
     async query(q: string): Promise<any> {
+
+        // console.log(` => q: ${q}`);
         const res = await this.connection.query(q);
         return res[0];
     }
@@ -82,19 +85,28 @@ export class NodeMySQLConnector {
      *      - OkPacket will be returned on success.
      */
     async insert(table: string, fields: any = {}): Promise<mysql.OkPacket> {
-        console.log(' => node-mysql-connector::insert: ', table, fields);
+        // console.log(' => node-mysql-connector::insert: ', table, fields);
         const arr = [];
-        for (const field of Object.keys(fields)) {
-            let v: any;
-            if (isNaN(fields[fields])) {
-                v = this.connection.escape(fields[field]);
-            } else {
-                v = fields[field];
+        const keys = Object.keys(fields);
+        // console.log('keys: ', keys);
+        try {
+            for (const field of keys) {
+                let v: any;
+                if (isNaN(fields[fields])) {
+                    v = this.connection.escape(fields[field]);
+                } else {
+                    v = fields[field];
+                }
+                arr.push('`' + field + '`=' + v);
             }
-            arr.push('`' + field + '`=' + v);
+        } catch (e) {
+            // don't do anything here.
+            // just deliver the error to the database query, so the error is being handled by the database query.
+            // console.log(e.message);
         }
+
+        // console.log('arr: ', arr);
         const q = `INSERT INTO ${table} SET ` + arr.join(',');
-        console.log(` => q: ${q}`);
         return await this.query(q);
     }
 
