@@ -6,7 +6,7 @@ const expect = chai.expect;
 const config: Config = jsonfile.readFileSync('modules/node-mysql-connector/config.json');
 
 import { NodeMySQLConnector } from './node-mysql-connector';
-import { ParseError, FieldError, FieldWrongValue, TableNotExist, ConnectionCountError, NullError, TableError } from './node-mysql-connector.interface';
+import { ParseError, FieldError, FieldWrongValue, TableNotExist, ConnectionCountError, NullError, TableError } from './node-mysql-connector.define';
 
 
 describe('[ Database Connection Test ]', () => {

@@ -40,7 +40,6 @@ export class NodeMySQLConnector {
             password: this.config.password,
             database: this.config.database
         })).then((conn: any) => {
-            // console.log('Database connected...!');
             return conn;
         }).catch((e: any) => e);
         return this;
@@ -54,7 +53,7 @@ export class NodeMySQLConnector {
      *      - Error code will be thrown on failure.
      */
     async disconnect(): Promise<void> {
-        return this.connection.end();
+        return await this.connection.end();
     }
 
     /**
@@ -65,14 +64,14 @@ export class NodeMySQLConnector {
      * @return A promise of
      *      - Error code will be thrown on failure.
      *      - Result will be return on success.
+     * 
+     * @proven Value will not be included in query because of the error 'escape is not a function'
+     *         due to database is not connected.
      */
     async query(q: string): Promise<any> {
-
-        // console.log(` => q: ${q}`);
         const res = await this.connection.query(q);
         return res[0];
     }
-
 
     /**
      * This method create record on database.
@@ -83,29 +82,20 @@ export class NodeMySQLConnector {
      * @returns A promise of
      *      - Error code will be thrown on failure.
      *      - OkPacket will be returned on success.
+     * 
+     * @proven 'escape is not a function' when database is not connected.
      */
     async insert(table: string, fields: any = {}): Promise<mysql.OkPacket> {
-        // console.log(' => node-mysql-connector::insert: ', table, fields);
         const arr = [];
-        const keys = Object.keys(fields);
-        // console.log('keys: ', keys);
-        try {
-            for (const field of keys) {
-                let v: any;
-                if (isNaN(fields[fields])) {
-                    v = this.connection.escape(fields[field]);
-                } else {
-                    v = fields[field];
-                }
-                arr.push('`' + field + '`=' + v);
+        for (const field of Object.keys(fields)) {
+            let v: any;
+            if (isNaN(fields[fields])) {
+                v = this.connection.escape(fields[field]);
+            } else {
+                v = fields[field];
             }
-        } catch (e) {
-            // don't do anything here.
-            // just deliver the error to the database query, so the error is being handled by the database query.
-            // console.log(e.message);
+            arr.push('`' + field + '`=' + v);
         }
-
-        // console.log('arr: ', arr);
         const q = `INSERT INTO ${table} SET ` + arr.join(',');
         return await this.query(q);
     }
@@ -120,8 +110,10 @@ export class NodeMySQLConnector {
      * @returns A promise of
      *      - Error code will be thrown on failure.
      *      - OkPackect will be returned on success.
+     * 
+     * @proven 'escape is not a function' when database is not connected.
      */
-    update(table: string, fields: any = {}, conds: string): Promise<mysql.OkPacket> {
+    async update(table: string, fields: any = {}, conds: string): Promise<mysql.OkPacket> {
         const arr = [];
         for (const field of Object.keys(fields)) {
             let v: any;
@@ -133,7 +125,7 @@ export class NodeMySQLConnector {
             arr.push('`' + field + '`=' + v);
         }
         const q = `UPDATE ${table} SET ` + arr.join(',') + ` WHERE ${conds}`;
-        return this.query(q);
+        return await this.query(q);
     }
 
     /**
@@ -146,8 +138,8 @@ export class NodeMySQLConnector {
      *      - Error code will be thrown on failure.
      *      - OkPacket will be returned on success.
      */
-    delete(table: string, conds: string): Promise<mysql.OkPacket> {
-        return this.query(`DELETE FROM ${table} WHERE ${conds}`);
+    async delete(table: string, conds: string): Promise<mysql.OkPacket> {
+        return await this.query(`DELETE FROM ${table} WHERE ${conds}`);
     }
 
     /**
@@ -168,8 +160,8 @@ export class NodeMySQLConnector {
      * If an error happens, it will be delegated to parent.
      *
      */
-    rows(q: string): Promise<any> {
-        return this.query(q);
+    async rows(q: string): Promise<any> {
+        return await this.query(q);
     }
 
     /**
@@ -227,7 +219,7 @@ export class NodeMySQLConnector {
      *      - 0 if no match record.
      *      - Error code on failure.
      */
-    count(table: string, conds: string): Promise<any> {
-        return this.result(`SELECT COUNT(*) FROM ${table} WHERE ${conds}`);
+    async count(table: string, conds: string): Promise<any> {
+        return await this.result(`SELECT COUNT(*) FROM ${table} WHERE ${conds}`);
     }
 }
